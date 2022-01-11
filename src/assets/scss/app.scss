@@ -1,5 +1,98 @@
 // Define variable defaults
 
+// Color system
+
+$white: #fff !default;
+$gray-100: #f9f9f9 !default;
+$gray-200: #f4f4f4 !default;
+$gray-300: #dbdbdb !default;
+$gray-400: #b4b4b4 !default;
+$gray-500: #929292 !default;
+$gray-600: #696969 !default; // Line footer color
+$gray-700: #565656 !default; // Line p color
+$gray-800: #3a3a3a !default; // Line heading color
+$gray-900: #1a1a1a !default;
+$black: #000 !default;
+
+$grays: () !default;
+$grays: map-merge(
+  (
+    '100': $gray-100,
+    '200': $gray-200,
+    '300': $gray-300,
+    '400': $gray-400,
+    '500': $gray-500,
+    '600': $gray-600,
+    '700': $gray-700,
+    '800': $gray-800,
+    '900': $gray-900
+  ),
+  $grays
+);
+
+$blue: #3b82f6 !default;
+$indigo: #6366f1 !default;
+$purple: #a855f7 !default;
+$pink: #f472b6 !default;
+$red: #ef4444 !default;
+$orange: #fb923c !default;
+$yellow: #fde047 !default;
+$green: #22c55e !default;
+$teal: #2dd4bf !default;
+$cyan: #06b6d4 !default;
+
+$colors: () !default;
+$colors: map-merge(
+  (
+    'blue': $blue,
+    'indigo': $indigo,
+    'purple': $purple,
+    'pink': $pink,
+    'red': $red,
+    'orange': $orange,
+    'yellow': $yellow,
+    'green': $green,
+    'teal': $teal,
+    'cyan': $cyan,
+    'white': $white,
+    'gray': $gray-600,
+    'light': $gray-400,
+    'lighter': $gray-200,
+    'gray-dark': $gray-800
+  ),
+  $colors
+);
+
+$default: #0284c7 !default;
+$primary: #0ea5e9 !default;
+$secondary: #f7fafc !default;
+$success: $green !default;
+$info: $teal !default;
+$warning: $orange !default;
+$danger: $red !default;
+$light: $gray-500 !default;
+$dark: $gray-900 !default;
+$darker: darken($gray-900, 15%) !default;
+
+$theme-colors: () !default;
+$theme-colors: map-merge(
+  (
+    'default': $default,
+    'primary': $primary,
+    'secondary': $secondary,
+    'success': $success,
+    'info': $info,
+    'warning': $warning,
+    'danger': $danger,
+    'white': $white,
+    'neutral': $white,
+    'description': $gray-700,
+    'dark': $dark,
+    'darker': $darker
+  ),
+  $theme-colors
+);
+
 // Then import Bootstrap an BootstrapVue SCSS files (order is important)
 @import 'bootstrap/scss/bootstrap.scss';
 @import 'bootstrap-vue/src/index.scss';
