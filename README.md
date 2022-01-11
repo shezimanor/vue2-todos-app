@@ -1,10 +1,12 @@
 # vue2-todos-app
 
-created_at: 2021/01/09
+Created_at: 2021/01/09
 
 Use Vue@2.6.14 & BootstrapVue@2.21.2
 
-## Component/instance Options Order
+## Rules: Component/instance Options Order
+
+reference: https://vuejs.org/v2/style-guide/index.html#Component-instance-options-order-recommended
 
 Component/instance options should be ordered consistently.
 
