@@ -15,7 +15,7 @@ export const apiClientSetToken = token => {
 };
 
 const responseHandler = response => {
-  console.log('api-request resolve: ', response);
+  // console.log('api-request resolve: ', response);
   const { headers, status, data } = response;
   return {
     responseType: RESPONSE_TYPE.CONNECT_CORRECT,
@@ -25,7 +25,7 @@ const responseHandler = response => {
   };
 };
 const errorHandler = error => {
-  console.log('api-request reject: ', error.response);
+  // console.log('api-request reject: ', error.response);
   if (error.response) {
     const { status, statusText, data } = error.response;
     return {

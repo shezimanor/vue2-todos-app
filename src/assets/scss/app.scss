@@ -87,6 +87,7 @@ $theme-colors: map-merge(
     'white': $white,
     'neutral': $white,
     'description': $gray-700,
+    'assistant': $gray-800,
     'dark': $dark,
     'darker': $darker
   ),
@@ -96,3 +97,38 @@ $theme-colors: map-merge(
 // Then import Bootstrap an BootstrapVue SCSS files (order is important)
 @import 'bootstrap/scss/bootstrap.scss';
 @import 'bootstrap-vue/src/index.scss';
+
+// General style overrides and custom classes: BEM(Block Element Modifier)
+.todosapp-container {
+  max-width: 640px;
+}
+.todosapp-card__checkbox {
+  position: absolute;
+  top: 1.5rem;
+  left: 1rem;
+}
+.todosapp-card__action {
+  position: absolute;
+  top: 1.25rem;
+  right: 0.75rem;
+  button {
+    padding: 0 0.125rem;
+  }
+  .todosapp-card__action__menu {
+    min-width: 80px;
+  }
+}
+
+// animation
+.todosapp-cardlist-leave-active {
+  position: absolute;
+  transition: all 0.5s;
+}
+.todosapp-cardlist-enter,
+.todosapp-cardlist-leave-to {
+  opacity: 0;
+  transform: translateY(-1rem);
+}
+.todosapp-cardlist-move {
+  transition: all 0.5s;
+}
