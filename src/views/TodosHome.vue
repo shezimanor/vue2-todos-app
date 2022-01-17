@@ -43,6 +43,128 @@
         </b-dropdown>
       </b-card>
     </transition-group>
+    <b-modal ref="todoModal" scrollable centered title="Todo" button-size="sm">
+      <!-- Todo Form -->
+      <div v-if="!loading.currentTodo && currentTodo">
+        <b-form @submit="onSubmit">
+          <!-- title -->
+          <b-form-group
+            id="formGroupTodoTitle"
+            label="Title:"
+            label-for="inputTodoTitle"
+          >
+            <b-form-input
+              id="inputTodoTitle"
+              v-model="currentTodo.title"
+              type="text"
+              placeholder="Enter title"
+              required
+            ></b-form-input>
+          </b-form-group>
+          <!-- content -->
+          <b-form-group
+            id="formGroupTodoContent"
+            label="Content:"
+            label-for="textareaTodoContent"
+          >
+            <b-form-textarea
+              id="textareaTodoContent"
+              v-model="currentTodo.content"
+              type="text"
+              placeholder="Enter content"
+              rows="4"
+              debounce="300"
+              no-resize
+              no-auto-shrink
+              trim
+            ></b-form-textarea>
+          </b-form-group>
+          <!-- date(switch) -->
+          <b-form-checkbox
+            v-model="todoFormSettings.date.switch"
+            name="dateSwitchButton"
+            switch
+            class="mb-2"
+          >
+            Date
+          </b-form-checkbox>
+          <!-- date -->
+          <b-form-group
+            id="formGroupTodoDate"
+            label="Date:"
+            label-for="datepickerTodoDate"
+            label-sr-only
+            v-if="todoFormSettings.date.switch"
+          >
+            <b-form-datepicker
+              id="datepickerTodoDate"
+              v-model="currentTodo.date"
+              placeholder="Choose a date"
+              locale="en"
+              :hide-header="true"
+              :date-format-options="{
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+              }"
+              :min="todoFormSettings.date.minDate"
+            ></b-form-datepicker>
+          </b-form-group>
+          <!-- time(switch) -->
+          <b-form-checkbox
+            v-model="todoFormSettings.time.switch"
+            name="timeSwitchButton"
+            switch
+            class="mb-2"
+          >
+            Time
+          </b-form-checkbox>
+          <!-- time -->
+          <b-form-group
+            id="formGroupTodoTime"
+            label="Time:"
+            label-for="datepickerTodoTime"
+            label-sr-only
+            v-if="todoFormSettings.time.switch"
+          >
+            <b-form-datepicker
+              id="datepickerTodoTime"
+              v-model="currentTodo.time"
+              placeholder="Choose a time"
+              locale="en"
+            ></b-form-datepicker>
+          </b-form-group>
+          <!-- priority -->
+          <b-form-group
+            id="formGroupTodoPriority"
+            label="Priority:"
+            label-for="selectTodoPriority"
+          >
+            <b-form-select
+              id="selectTodoPriority"
+              v-model="currentTodo.priority"
+              :options="todoFormSettings.priority.options"
+            ></b-form-select>
+          </b-form-group>
+          <!-- category -->
+          <b-form-group
+            id="formGroupTodoCategory"
+            label="Category:"
+            label-for="selectTodoCategory"
+          >
+            <b-form-select
+              id="selectTodoCategory"
+              v-model="currentTodo.category"
+              :options="todoFormSettings.category.options"
+            ></b-form-select>
+          </b-form-group>
+        </b-form>
+      </div>
+      <!-- loading -->
+      <div v-else>
+        <b-skeleton></b-skeleton>
+      </div>
+    </b-modal>
   </b-container>
 </template>
 
@@ -57,10 +179,42 @@ export default {
     BIconThreeDots
   },
   data() {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // 15th two months prior
+    const minDate = new Date(today);
     return {
       todos: [],
-      items: [1, 2, 3, 4, 5, 6, 7, 8, 9],
-      nextNum: 10
+      currentTodo: null,
+      loading: {
+        todos: true,
+        currentTodo: false
+      },
+      todoFormSettings: {
+        date: {
+          switch: false,
+          minDate: minDate
+        },
+        time: {
+          switch: false
+        },
+        category: {
+          options: [
+            { value: '', text: '--' },
+            { value: 'daily', text: 'Daily' },
+            { value: 'work', text: 'Work' },
+            { value: 'society', text: 'Society' }
+          ]
+        },
+        priority: {
+          options: [
+            { value: null, text: 'None' },
+            { value: 1, text: 'Low' },
+            { value: 2, text: 'Medium' },
+            { value: 3, text: 'High' }
+          ]
+        }
+      }
     };
   },
   computed: {
@@ -74,12 +228,25 @@ export default {
   },
   methods: {
     async getTodos() {
+      this.loading.todos = true;
       const { responseType, data } = await TodosService.getTodos();
       if (responseType === RESPONSE_TYPE.CONNECT_CORRECT) {
         this.todos = data;
       } else {
         // error
       }
+      this.loading.todos = false;
+    },
+    async getTodo(id) {
+      this.loading.currentTodo = true;
+      const { responseType, data } = await TodosService.getTodo(id);
+      if (responseType === RESPONSE_TYPE.CONNECT_CORRECT) {
+        this.currentTodo = data;
+        console.log('get todo');
+      } else {
+        // error
+      }
+      this.loading.currentTodo = false;
     },
     async updateTodo(id, completed) {
       console.log('updateTodo:', id, completed);
@@ -135,12 +302,36 @@ export default {
       console.log('onInput:', id, completed);
       this.updateTodo(id, completed);
     },
-    onEdit(id) {
+    async onEdit(id) {
       console.log('onEdit:', id);
+      this.showModal();
+      this.currentTodo = null;
+      await this.getTodo(id);
+      this.resetForm();
+      console.log('onEdit done');
     },
     onDelete(id) {
       console.log('onDelete:', id);
       this.deleteTodo(id);
+    },
+    onSubmit(event) {
+      event.preventDefault();
+    },
+    showModal() {
+      this.$refs['todoModal'].show();
+    },
+    hideModal() {
+      this.$refs['todoModal'].hide();
+    },
+    resetForm() {
+      console.log('reset form start');
+      if (this.currentTodo) {
+        this.todoFormSettings.date.switch =
+          this.currentTodo.date !== '' ? true : false;
+        this.todoFormSettings.time.switch =
+          this.currentTodo.time !== '' ? true : false;
+      }
+      console.log('reset form end');
     }
   }
 };

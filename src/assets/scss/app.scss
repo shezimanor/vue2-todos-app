@@ -122,13 +122,13 @@ $theme-colors: map-merge(
 // animation
 .todosapp-cardlist-leave-active {
   position: absolute;
-  transition: all 0.5s;
+  transition: all 0.2s ease;
 }
 .todosapp-cardlist-enter,
 .todosapp-cardlist-leave-to {
   opacity: 0;
-  transform: translateY(-1rem);
+  transform: translateX(-1rem);
 }
 .todosapp-cardlist-move {
-  transition: all 0.5s;
+  transition: all 0.5s ease 0.3s;
 }

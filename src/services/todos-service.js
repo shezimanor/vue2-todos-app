@@ -8,6 +8,12 @@ export default {
       data: params
     });
   },
+  getTodo(id) {
+    return apiRequest({
+      method: 'get',
+      url: `/todos/${id}`
+    });
+  },
   createTodo(todo) {
     return apiRequest({
       method: 'post',
