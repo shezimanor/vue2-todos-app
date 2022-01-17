@@ -55,11 +55,14 @@
           >
             <b-form-input
               id="inputTodoTitle"
-              v-model="currentTodo.title"
+              v-model="$v.currentTodo.title.$model"
               type="text"
               placeholder="Enter title"
-              required
+              :state="$v.currentTodo.title.required"
             ></b-form-input>
+            <b-form-invalid-feedback :state="$v.currentTodo.title.required">
+              Title is required.
+            </b-form-invalid-feedback>
           </b-form-group>
           <!-- content -->
           <b-form-group
@@ -69,7 +72,7 @@
           >
             <b-form-textarea
               id="textareaTodoContent"
-              v-model="currentTodo.content"
+              v-model="$v.currentTodo.content.$model"
               type="text"
               placeholder="Enter content"
               rows="4"
@@ -77,7 +80,12 @@
               no-resize
               no-auto-shrink
               trim
+              :state="$v.currentTodo.content.maxLength"
             ></b-form-textarea>
+            <b-form-invalid-feedback :state="$v.currentTodo.content.maxLength">
+              Content have at most
+              {{ $v.currentTodo.content.$params.maxLength.max }} letters.
+            </b-form-invalid-feedback>
           </b-form-group>
           <!-- date(switch) -->
           <b-form-checkbox
@@ -173,11 +181,15 @@ import { RESPONSE_TYPE } from '@/services/api-request';
 import TodosService from '@/services/todos-service';
 // b-icons: Importing specific icons
 import { BIconThreeDots } from 'bootstrap-vue';
+// Vuelidate Library
+import { validationMixin } from 'vuelidate';
+import { required, maxLength } from 'vuelidate/lib/validators';
 export default {
   name: 'TodosHome',
   components: {
     BIconThreeDots
   },
+  mixins: [validationMixin],
   data() {
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -216,6 +228,16 @@ export default {
         }
       }
     };
+  },
+  validations: {
+    currentTodo: {
+      title: {
+        required
+      },
+      content: {
+        maxLength: maxLength(300)
+      }
+    }
   },
   computed: {
     completedTodos() {
