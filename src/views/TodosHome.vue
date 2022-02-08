@@ -43,7 +43,15 @@
         </b-dropdown>
       </b-card>
     </transition-group>
-    <b-modal ref="todoModal" scrollable centered title="Todo" button-size="sm">
+    <b-modal
+      ref="todoModal"
+      scrollable
+      hide-footer
+      no-close-on-backdrop
+      centered
+      title="Todo"
+      button-size="sm"
+    >
       <!-- Todo Form -->
       <div v-if="!loading.currentTodo && currentTodo">
         <b-form @submit="onSubmit">
@@ -58,7 +66,7 @@
               v-model="$v.currentTodo.title.$model"
               type="text"
               placeholder="Enter title"
-              :state="$v.currentTodo.title.required"
+              :state="inputState_title"
             ></b-form-input>
             <b-form-invalid-feedback :state="$v.currentTodo.title.required">
               Title is required.
@@ -80,7 +88,7 @@
               no-resize
               no-auto-shrink
               trim
-              :state="$v.currentTodo.content.maxLength"
+              :state="inputState_content"
             ></b-form-textarea>
             <b-form-invalid-feedback :state="$v.currentTodo.content.maxLength">
               Content have at most
@@ -135,12 +143,15 @@
             label-sr-only
             v-if="todoFormSettings.time.switch"
           >
-            <b-form-datepicker
+            <b-form-timepicker
               id="datepickerTodoTime"
               v-model="currentTodo.time"
               placeholder="Choose a time"
+              now-button
+              reset-button
+              :hide-header="true"
               locale="en"
-            ></b-form-datepicker>
+            ></b-form-timepicker>
           </b-form-group>
           <!-- priority -->
           <b-form-group
@@ -166,6 +177,8 @@
               :options="todoFormSettings.category.options"
             ></b-form-select>
           </b-form-group>
+          <b-button type="submit" variant="primary">Submit</b-button>
+          <b-button type="reset" variant="warning">Reset</b-button>
         </b-form>
       </div>
       <!-- loading -->
@@ -213,9 +226,9 @@ export default {
         category: {
           options: [
             { value: '', text: '--' },
-            { value: 'daily', text: 'Daily' },
+            { value: 'life', text: 'Life' },
             { value: 'work', text: 'Work' },
-            { value: 'society', text: 'Society' }
+            { value: 'plan', text: 'Plan' }
           ]
         },
         priority: {
@@ -242,6 +255,19 @@ export default {
   computed: {
     completedTodos() {
       return this.todos.filter(todo => !todo.completed);
+    },
+    // inputState
+    inputState_title() {
+      const vm = this;
+      if (!vm.currentTodo || !vm.$v.currentTodo.title.$dirty) return null;
+      if (vm.$v.currentTodo.title.$invalid) return false;
+      else return true;
+    },
+    inputState_content() {
+      const vm = this;
+      if (!vm.currentTodo || !vm.$v.currentTodo.content.$dirty) return null;
+      if (vm.$v.currentTodo.content.$invalid) return false;
+      else return true;
     }
   },
   mounted() {
@@ -329,7 +355,7 @@ export default {
       this.showModal();
       this.currentTodo = null;
       await this.getTodo(id);
-      this.resetForm();
+      this.resetFormState();
       console.log('onEdit done');
     },
     onDelete(id) {
@@ -337,6 +363,7 @@ export default {
       this.deleteTodo(id);
     },
     onSubmit(event) {
+      console.log('onSubmit:', this.currentTodo);
       event.preventDefault();
     },
     showModal() {
@@ -345,15 +372,13 @@ export default {
     hideModal() {
       this.$refs['todoModal'].hide();
     },
-    resetForm() {
-      console.log('reset form start');
+    resetFormState() {
       if (this.currentTodo) {
         this.todoFormSettings.date.switch =
           this.currentTodo.date !== '' ? true : false;
         this.todoFormSettings.time.switch =
           this.currentTodo.time !== '' ? true : false;
       }
-      console.log('reset form end');
     }
   }
 };
