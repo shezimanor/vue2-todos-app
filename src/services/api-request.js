@@ -1,20 +1,18 @@
 import axios from 'axios';
-// API response type contant
+
+// API response type constant
 export const RESPONSE_TYPE = {
   CONNECT_CORRECT: 'CONNECT_CORRECT',
   CONNECT_ERROR: 'CONNECT_ERROR',
   NETWORK_ERROR: 'NETWORK_ERROR'
 };
+
 // create axios instance
 const apiClient = axios.create({
   baseURL: process.env.VUE_APP_PATH
 });
 
-export const apiClientSetToken = token => {
-  apiClient.defaults.headers.common['Authorization'] = token;
-};
-
-const responseHandler = response => {
+export const responseHandler = response => {
   // console.log('api-request resolve: ', response);
   const { headers, status, data } = response;
   return {
@@ -24,7 +22,8 @@ const responseHandler = response => {
     data
   };
 };
-const errorHandler = error => {
+
+export const errorHandler = error => {
   // console.log('api-request reject: ', error.response);
   if (error.response) {
     const { status, statusText, data } = error.response;

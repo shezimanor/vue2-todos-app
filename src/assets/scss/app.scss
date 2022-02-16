@@ -118,6 +118,13 @@ $theme-colors: map-merge(
     min-width: 80px;
   }
 }
+.todosapp-createbutton {
+  display: block;
+  width: 46px;
+  height: 46px;
+  margin: auto;
+  border-radius: 23px;
+}
 
 // animation
 .todosapp-cardlist-leave-active {

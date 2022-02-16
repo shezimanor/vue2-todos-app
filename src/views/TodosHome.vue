@@ -43,6 +43,13 @@
         </b-dropdown>
       </b-card>
     </transition-group>
+    <b-button variant="primary" class="todosapp-createbutton" @click="onCreate"
+      ><b-icon-plus
+        scale="2.3"
+        aria-label="Add"
+        :animation="completedTodos.length === 0 ? 'fade' : ''"
+      ></b-icon-plus
+    ></b-button>
     <b-modal
       ref="todoModal"
       scrollable
@@ -192,14 +199,35 @@
 <script>
 import { RESPONSE_TYPE } from '@/services/api-request';
 import TodosService from '@/services/todos-service';
+import store from '@/store';
+import { mapState } from 'vuex';
 // b-icons: Importing specific icons
-import { BIconThreeDots } from 'bootstrap-vue';
+import { BIconPlus, BIconThreeDots } from 'bootstrap-vue';
 // Vuelidate Library
 import { validationMixin } from 'vuelidate';
 import { required, maxLength } from 'vuelidate/lib/validators';
+
+async function getTodos(routeTo, next) {
+  console.log(`getTodos`);
+
+  const response = await store.dispatch('todo/getTodos', {
+    page: 1,
+    completed: false
+  });
+  console.log(`getTodos: `, response);
+
+  // handle error
+  if (response.responseType !== RESPONSE_TYPE.CONNECT_CORRECT) {
+    console.log(`getTodos error`);
+  }
+
+  next();
+}
+
 export default {
   name: 'TodosHome',
   components: {
+    BIconPlus,
     BIconThreeDots
   },
   mixins: [validationMixin],
@@ -209,7 +237,6 @@ export default {
     // 15th two months prior
     const minDate = new Date(today);
     return {
-      todos: [],
       currentTodo: null,
       loading: {
         todos: true,
@@ -253,6 +280,9 @@ export default {
     }
   },
   computed: {
+    ...mapState({
+      todos: state => state.todo.todos
+    }),
     completedTodos() {
       return this.todos.filter(todo => !todo.completed);
     },
@@ -270,21 +300,26 @@ export default {
       else return true;
     }
   },
-  mounted() {
-    // console.log('mounted', RESPONSE_TYPE);
-    this.getTodos();
+  // hook
+  async beforeRouteEnter(routeTo, routeFrom, next) {
+    // Called before component is created.
+    await getTodos(routeTo, next);
+  },
+  async beforeRouteUpdate(routeTo, routeFrom, next) {
+    // Called when the route changes, but still using the same component.
+    await getTodos(routeTo, next);
   },
   methods: {
-    async getTodos() {
-      this.loading.todos = true;
-      const { responseType, data } = await TodosService.getTodos();
-      if (responseType === RESPONSE_TYPE.CONNECT_CORRECT) {
-        this.todos = data;
-      } else {
-        // error
-      }
-      this.loading.todos = false;
-    },
+    // async getTodos() {
+    //   this.loading.todos = true;
+    //   const { responseType, data } = await TodosService.getTodos();
+    //   if (responseType === RESPONSE_TYPE.CONNECT_CORRECT) {
+    //     this.todos = data;
+    //   } else {
+    //     // error
+    //   }
+    //   this.loading.todos = false;
+    // },
     async getTodo(id) {
       this.loading.currentTodo = true;
       const { responseType, data } = await TodosService.getTodo(id);
@@ -356,7 +391,24 @@ export default {
       this.currentTodo = null;
       await this.getTodo(id);
       this.resetFormState();
+      this.$v.currentTodo.$reset();
       console.log('onEdit done');
+    },
+    onCreate() {
+      this.showModal();
+      // Todo Template
+      this.currentTodo = {
+        title: '',
+        content: '',
+        priority: null,
+        completed: false,
+        date: '',
+        time: '',
+        category: '',
+        id: null
+      };
+      this.resetFormState();
+      this.$v.currentTodo.$reset();
     },
     onDelete(id) {
       console.log('onDelete:', id);
