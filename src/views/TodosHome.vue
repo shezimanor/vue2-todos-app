@@ -20,7 +20,7 @@
         <b-form-checkbox
           v-model="todo.completed"
           class="todosapp-card__checkbox"
-          @input="onInput(todo.id, todo.completed)"
+          @input="onCompleted(todo.id, todo.completed)"
         ></b-form-checkbox>
         <b-dropdown
           size="sm"
@@ -184,7 +184,7 @@
               :options="todoFormSettings.category.options"
             ></b-form-select>
           </b-form-group>
-          <b-button type="submit" variant="primary">Submit</b-button>
+          <b-button type="submit" variant="primary">Save</b-button>
           <b-button type="reset" variant="warning">Reset</b-button>
         </b-form>
       </div>
@@ -200,12 +200,14 @@
 import { RESPONSE_TYPE } from '@/services/api-request';
 import TodosService from '@/services/todos-service';
 import store from '@/store';
-import { mapState } from 'vuex';
+import { mapState, mapGetters } from 'vuex';
 // b-icons: Importing specific icons
 import { BIconPlus, BIconThreeDots } from 'bootstrap-vue';
 // Vuelidate Library
 import { validationMixin } from 'vuelidate';
 import { required, maxLength } from 'vuelidate/lib/validators';
+// utils
+import { deepCopy } from '@/utils';
 
 async function getTodos(routeTo, next) {
   console.log(`getTodos`);
@@ -283,9 +285,7 @@ export default {
     ...mapState({
       todos: state => state.todo.todos
     }),
-    completedTodos() {
-      return this.todos.filter(todo => !todo.completed);
-    },
+    ...mapGetters('todo', ['completedTodos', 'getTodoById']),
     // inputState
     inputState_title() {
       const vm = this;
@@ -310,52 +310,30 @@ export default {
     await getTodos(routeTo, next);
   },
   methods: {
-    // async getTodos() {
-    //   this.loading.todos = true;
-    //   const { responseType, data } = await TodosService.getTodos();
-    //   if (responseType === RESPONSE_TYPE.CONNECT_CORRECT) {
-    //     this.todos = data;
-    //   } else {
-    //     // error
-    //   }
-    //   this.loading.todos = false;
-    // },
-    async getTodo(id) {
+    async createTodo(createdTodo) {
       this.loading.currentTodo = true;
-      const { responseType, data } = await TodosService.getTodo(id);
+      const { responseType } = await store.dispatch(
+        'todo/createTodo',
+        createdTodo
+      );
+      console.log('todo create api done:', responseType);
       if (responseType === RESPONSE_TYPE.CONNECT_CORRECT) {
-        this.currentTodo = data;
-        console.log('get todo');
+        console.log('created successfully!');
       } else {
         // error
+        console.log('fail to create!');
       }
       this.loading.currentTodo = false;
     },
-    async updateTodo(id, completed) {
-      console.log('updateTodo:', id, completed);
-      const { responseType, data: updatedTodo } = await TodosService.updateTodo(
+    async updateTodo(id, updatedTodo) {
+      console.log('updateTodo:', id, updatedTodo);
+      const { responseType } = await store.dispatch('todo/updateTodo', {
         id,
-        {
-          completed
-        }
-      );
-      console.log('api done:', responseType, updatedTodo);
+        todo: updatedTodo
+      });
+      console.log('todo update api done:', responseType);
       if (responseType === RESPONSE_TYPE.CONNECT_CORRECT) {
-        if (updatedTodo) {
-          // replace target todo
-          this.todos.splice(
-            this.todos.findIndex(todo => todo.id === id),
-            1,
-            updatedTodo
-          );
-          console.log('completed updated!');
-        } else {
-          // not found
-          // recover target todo
-          const todo = this.todos.find(todo => todo.id === id);
-          todo.completed = !todo.completed;
-          console.log('fail to update!');
-        }
+        console.log('updated successfully!');
       } else {
         // error
         console.log('fail to update!');
@@ -379,17 +357,18 @@ export default {
         }
       } else {
         // error
+        console.log('fail to detele!');
       }
     },
-    onInput(id, completed) {
-      console.log('onInput:', id, completed);
-      this.updateTodo(id, completed);
+    onCompleted(id, completed) {
+      console.log('onCompleted:', id, completed);
+      this.updateTodo(id, { completed });
     },
     async onEdit(id) {
-      console.log('onEdit:', id);
       this.showModal();
-      this.currentTodo = null;
-      await this.getTodo(id);
+      // getTodoById: Method-Style Vuex getters
+      // deep clone object
+      this.currentTodo = deepCopy(this.getTodoById(id));
       this.resetFormState();
       this.$v.currentTodo.$reset();
       console.log('onEdit done');
@@ -398,8 +377,8 @@ export default {
       this.showModal();
       // Todo Template
       this.currentTodo = {
-        title: '',
-        content: '',
+        title: 'Prepare Interview',
+        content: 'Complete this side project.',
         priority: null,
         completed: false,
         date: '',
@@ -417,6 +396,11 @@ export default {
     onSubmit(event) {
       console.log('onSubmit:', this.currentTodo);
       event.preventDefault();
+      // create or update
+      if (!this.currentTodo.id) this.createTodo(this.currentTodo);
+      else this.updateTodo(this.currentTodo.id, this.currentTodo);
+      this.hideModal();
+      this.currentTodo = null;
     },
     showModal() {
       this.$refs['todoModal'].show();
