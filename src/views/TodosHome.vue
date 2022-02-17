@@ -16,7 +16,9 @@
         <b-card-text class="text-description">
           {{ todo.content }}
         </b-card-text>
-        <small class="text-muted">{{ todo.id }}</small>
+        <small v-if="todo.priority" class="text-muted">{{
+          todoPriorty[todo.priority]
+        }}</small>
         <b-form-checkbox
           v-model="todo.completed"
           class="todosapp-card__checkbox"
@@ -61,13 +63,24 @@
     >
       <!-- Todo Form -->
       <div v-if="!loading.currentTodo && currentTodo">
-        <b-form @submit="onSubmit">
+        <b-form @submit="onSubmit" @reset="onReset">
           <!-- title -->
           <b-form-group
             id="formGroupTodoTitle"
-            label="Title:"
             label-for="inputTodoTitle"
+            :state="
+              $v.currentTodo.title.$dirty && !$v.currentTodo.title.required
+            "
           >
+            <template #label>
+              <label
+                id="formGroupTodoTitle__BV_label_"
+                for="inputTodoTitle"
+                class="d-block"
+              >
+                <span class="text-danger">*</span> Title:
+              </label>
+            </template>
             <b-form-input
               id="inputTodoTitle"
               v-model="$v.currentTodo.title.$model"
@@ -75,8 +88,8 @@
               placeholder="Enter title"
               :state="inputState_title"
             ></b-form-input>
-            <b-form-invalid-feedback :state="$v.currentTodo.title.required">
-              Title is required.
+            <b-form-invalid-feedback>
+              Title field is required.
             </b-form-invalid-feedback>
           </b-form-group>
           <!-- content -->
@@ -84,6 +97,9 @@
             id="formGroupTodoContent"
             label="Content:"
             label-for="textareaTodoContent"
+            :state="
+              $v.currentTodo.content.$dirty && !$v.currentTodo.content.maxLength
+            "
           >
             <b-form-textarea
               id="textareaTodoContent"
@@ -97,8 +113,8 @@
               trim
               :state="inputState_content"
             ></b-form-textarea>
-            <b-form-invalid-feedback :state="$v.currentTodo.content.maxLength">
-              Content have at most
+            <b-form-invalid-feedback>
+              Content field must be at most
               {{ $v.currentTodo.content.$params.maxLength.max }} letters.
             </b-form-invalid-feedback>
           </b-form-group>
@@ -191,6 +207,8 @@
       <!-- loading -->
       <div v-else>
         <b-skeleton></b-skeleton>
+        <b-skeleton></b-skeleton>
+        <b-skeleton></b-skeleton>
       </div>
     </b-modal>
   </b-container>
@@ -208,7 +226,7 @@ import { required, maxLength } from 'vuelidate/lib/validators';
 // utils
 import { deepCopy } from '@/utils';
 
-async function getTodos(routeTo, next) {
+async function getTodos() {
   console.log(`getTodos`);
 
   const response = await store.dispatch('todo/getTodos', {
@@ -221,8 +239,6 @@ async function getTodos(routeTo, next) {
   if (response.responseType !== RESPONSE_TYPE.CONNECT_CORRECT) {
     console.log(`getTodos error`);
   }
-
-  next();
 }
 
 export default {
@@ -276,13 +292,15 @@ export default {
         required
       },
       content: {
-        maxLength: maxLength(300)
+        maxLength: maxLength(60)
       }
     }
   },
   computed: {
     ...mapState({
-      todos: state => state.todo.todos
+      todos: state => state.todo.todos,
+      todoCategory: state => state.todo.todoCategory,
+      todoPriorty: state => state.todo.todoPriorty
     }),
     ...mapGetters('todo', ['completedTodos', 'getTodoById']),
     // inputState
@@ -290,23 +308,25 @@ export default {
       const vm = this;
       if (!vm.currentTodo || !vm.$v.currentTodo.title.$dirty) return null;
       if (vm.$v.currentTodo.title.$invalid) return false;
-      else return true;
+      else return null;
     },
     inputState_content() {
       const vm = this;
       if (!vm.currentTodo || !vm.$v.currentTodo.content.$dirty) return null;
       if (vm.$v.currentTodo.content.$invalid) return false;
-      else return true;
+      else return null;
     }
   },
   // hook
   async beforeRouteEnter(routeTo, routeFrom, next) {
     // Called before component is created.
     await getTodos(routeTo, next);
+    next();
   },
   async beforeRouteUpdate(routeTo, routeFrom, next) {
     // Called when the route changes, but still using the same component.
     await getTodos(routeTo, next);
+    next();
   },
   methods: {
     async createTodo(createdTodo) {
@@ -325,6 +345,7 @@ export default {
       this.loading.currentTodo = false;
     },
     async updateTodo(id, updatedTodo) {
+      this.loading.currentTodo = true;
       console.log('updateTodo:', id, updatedTodo);
       const { responseType } = await store.dispatch('todo/updateTodo', {
         id,
@@ -337,6 +358,7 @@ export default {
         // error
         console.log('fail to update!');
       }
+      this.loading.currentTodo = false;
     },
     async deleteTodo(id) {
       console.log('deleteTodo:', id);
@@ -360,14 +382,16 @@ export default {
       this.currentTodo = deepCopy(this.getTodoById(id));
       this.resetFormState();
       this.$v.currentTodo.$reset();
-      console.log('onEdit done');
+    },
+    resetTodoForm() {
+      this.resetFormState();
     },
     onCreate() {
       this.showModal();
       // generate a todo's template
       this.currentTodo = {
-        title: 'Prepare Interview',
-        content: 'Complete this side project.',
+        title: '',
+        content: '',
         priority: null,
         completed: false,
         date: '',
@@ -375,21 +399,36 @@ export default {
         category: '',
         id: null
       };
-      this.resetFormState();
-      this.$v.currentTodo.$reset();
+      this.resetTodoForm();
     },
     onDelete(id) {
       console.log('onDelete:', id);
       this.deleteTodo(id);
     },
     onSubmit(event) {
-      console.log('onSubmit:', this.currentTodo);
+      this.$v.currentTodo.$touch();
+      // console.log('onSubmit:', this.currentTodo, this.$v.currentTodo);
       event.preventDefault();
+      // Validate form
+      if (this.$v.currentTodo.$invalid) return;
       // create or update
       if (!this.currentTodo.id) this.createTodo(this.currentTodo);
       else this.updateTodo(this.currentTodo.id, this.currentTodo);
       this.hideModal();
       this.currentTodo = null;
+    },
+    onReset(event) {
+      event.preventDefault();
+      this.currentTodo = Object.assign(this.currentTodo, {
+        title: '',
+        content: '',
+        priority: null,
+        completed: false,
+        date: '',
+        time: '',
+        category: ''
+      });
+      this.resetTodoForm();
     },
     showModal() {
       this.$refs['todoModal'].show();
@@ -404,6 +443,7 @@ export default {
         this.todoFormSettings.time.switch =
           this.currentTodo.time !== '' ? true : false;
       }
+      this.$v.currentTodo.$reset();
     }
   }
 };

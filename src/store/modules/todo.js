@@ -6,7 +6,17 @@ export const namespaced = true;
 const perPage = 10;
 
 export const state = {
-  todos: []
+  todos: [],
+  todoCategory: {
+    life: 'Life',
+    work: 'Work',
+    plan: 'Plan'
+  },
+  todoPriorty: {
+    1: 'Low',
+    2: 'Meidum',
+    3: 'High'
+  }
 };
 
 export const mutations = {
