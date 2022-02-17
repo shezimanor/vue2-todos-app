@@ -13,12 +13,21 @@
         tag="li"
         class="todosapp-card w-100 mb-4 px-4"
       >
-        <b-card-text class="text-description">
+        <b-card-text>
           {{ todo.content }}
         </b-card-text>
-        <small v-if="todo.priority" class="text-muted">{{
-          todoPriorty[todo.priority]
-        }}</small>
+        <div class="todosapp-card__footer">
+          <b-badge
+            v-if="todo.priority"
+            :class="`badge-${todoPriorty[todo.priority].toLowerCase()}`"
+            >{{ todoPriorty[todo.priority] }}</b-badge
+          >
+          <b-badge
+            v-if="todo.category"
+            :class="`badge-${todoCategory[todo.category].toLowerCase()}`"
+            >{{ todoCategory[todo.category] }}</b-badge
+          >
+        </div>
         <b-form-checkbox
           v-model="todo.completed"
           class="todosapp-card__checkbox"

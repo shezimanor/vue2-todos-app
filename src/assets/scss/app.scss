@@ -32,14 +32,14 @@ $grays: map-merge(
 
 $blue: #3b82f6 !default;
 $indigo: #6366f1 !default;
-$purple: #a855f7 !default;
-$pink: #f472b6 !default;
-$red: #ef4444 !default;
-$orange: #fb923c !default;
-$yellow: #fde047 !default;
-$green: #22c55e !default;
-$teal: #2dd4bf !default;
-$cyan: #06b6d4 !default;
+$purple: #b069f1 !default;
+$pink: #fc93c9 !default;
+$red: #f35353 !default;
+$orange: #f39f5b !default;
+$yellow: #fde361 !default;
+$green: #1cc459 !default;
+$teal: #2bcab5 !default;
+$cyan: #15f5f5 !default;
 
 $colors: () !default;
 $colors: map-merge(
@@ -116,6 +116,35 @@ $theme-colors: map-merge(
   }
   .todosapp-card__action__menu {
     min-width: 80px;
+  }
+}
+.todosapp-card__footer {
+  .badge {
+    margin-right: 8px;
+    &.badge-low {
+      color: $gray-800;
+      background-color: $cyan;
+    }
+    &.badge-medium {
+      color: $gray-800;
+      background-color: $yellow;
+    }
+    &.badge-high {
+      color: $gray-800;
+      background-color: $pink;
+    }
+    &.badge-life {
+      color: $white;
+      background-color: $green;
+    }
+    &.badge-work {
+      color: $white;
+      background-color: $orange;
+    }
+    &.badge-plan {
+      color: $white;
+      background-color: $teal;
+    }
   }
 }
 .todosapp-createbutton {

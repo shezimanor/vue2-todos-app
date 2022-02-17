@@ -14,7 +14,7 @@ export const state = {
   },
   todoPriorty: {
     1: 'Low',
-    2: 'Meidum',
+    2: 'Medium',
     3: 'High'
   }
 };
