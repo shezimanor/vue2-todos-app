@@ -198,7 +198,6 @@
 
 <script>
 import { RESPONSE_TYPE } from '@/services/api-request';
-import TodosService from '@/services/todos-service';
 import store from '@/store';
 import { mapState, mapGetters } from 'vuex';
 // b-icons: Importing specific icons
@@ -341,20 +340,10 @@ export default {
     },
     async deleteTodo(id) {
       console.log('deleteTodo:', id);
-      const { responseType, data } = await TodosService.deleteTodo(id);
-      console.log('api done:', responseType, data);
+      const { responseType } = await store.dispatch('todo/deleteTodo', id);
+      console.log('todo detele api done:', responseType);
       if (responseType === RESPONSE_TYPE.CONNECT_CORRECT) {
-        if (data.result) {
-          // delete target todo
-          this.todos.splice(
-            this.todos.findIndex(todo => todo.id === id),
-            1
-          );
-          console.log('completed deteled!');
-        } else {
-          // not found
-          console.log('fail to detele!');
-        }
+        console.log('deteled successfully!');
       } else {
         // error
         console.log('fail to detele!');
@@ -375,7 +364,7 @@ export default {
     },
     onCreate() {
       this.showModal();
-      // Todo Template
+      // generate a todo's template
       this.currentTodo = {
         title: 'Prepare Interview',
         content: 'Complete this side project.',

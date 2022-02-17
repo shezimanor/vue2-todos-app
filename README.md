@@ -4,6 +4,8 @@ Created_at: 2022/01/09
 
 Use Vue@2.6.14 & BootstrapVue@2.21.2
 
+Database: localStorage(No longer use json-server)
+
 ## Rules: Component/instance Options Order
 
 Reference: https://vuejs.org/v2/style-guide/index.html#Component-instance-options-order-recommended
