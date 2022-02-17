@@ -1,5 +1,3 @@
-import axios from 'axios';
-
 // API response type constant
 export const RESPONSE_TYPE = {
   CONNECT_CORRECT: 'CONNECT_CORRECT',
@@ -7,11 +5,16 @@ export const RESPONSE_TYPE = {
   NETWORK_ERROR: 'NETWORK_ERROR'
 };
 
-// create axios instance
-const apiClient = axios.create({
-  baseURL: process.env.VUE_APP_PATH
-});
+// Error Response: localStorage access denied response
+const localStorageAccessDeniedResponse = {
+  response: {
+    status: 404,
+    statusText: 'localStorage access is denied!',
+    data: { errorType: 'accessDenied' }
+  }
+};
 
+// Correct Response Handler
 export const responseHandler = response => {
   // console.log('api-request resolve: ', response);
   const { headers, status, data } = response;
@@ -23,6 +26,7 @@ export const responseHandler = response => {
   };
 };
 
+// Error Response Handler
 export const errorHandler = error => {
   // console.log('api-request reject: ', error.response);
   if (error.response) {
@@ -41,30 +45,16 @@ export const errorHandler = error => {
   }
 };
 
-// this encapsulation: to use async/await
-export const apiRequest = ({ method, url, data = {}, config = {} }) => {
-  switch (method) {
-    case 'post':
-    case 'put':
-    case 'patch':
-      return apiClient[method](url, data, config)
-        .then(response => {
-          return responseHandler(response);
-        })
-        .catch(error => {
-          return errorHandler(error);
-        });
-    case 'get':
-    case 'delete':
-      return apiClient[method](url, { params: data })
-        .then(response => {
-          return responseHandler(response);
-        })
-        .catch(error => {
-          return errorHandler(error);
-        });
-    default:
-      console.log(`undefined method: ${method}`);
-      return false;
-  }
-};
+// (todo)create a Promise to manipulate localStorage
+export const apiRequest = requestManipulation =>
+  new Promise((resolve, reject) => {
+    if (!('localStorage' in window)) reject(localStorageAccessDeniedResponse);
+    requestManipulation(resolve, reject);
+  })
+    .then(response => {
+      console.log(`responseHandler`, response);
+      return responseHandler(response);
+    })
+    .catch(error => {
+      return errorHandler(error);
+    });
