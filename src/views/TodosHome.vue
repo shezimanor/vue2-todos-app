@@ -31,6 +31,7 @@
         <b-form-checkbox
           v-model="todo.completed"
           class="todosapp-card__checkbox"
+          size="lg"
           @input="onCompleted(todo.id, todo.completed)"
         ></b-form-checkbox>
         <b-dropdown
