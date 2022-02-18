@@ -1,227 +1,237 @@
 <template>
-  <b-container class="todosapp-container">
-    <transition-group
-      name="todosapp-cardlist"
-      tag="ul"
-      class="flex-column position-relative pl-0"
-      key="1"
-    >
-      <b-card
-        v-for="todo in completedTodos"
-        :key="todo.id"
-        :title="todo.title"
-        tag="li"
-        class="todosapp-card w-100 mb-4 px-4"
+  <div>
+    <div class="top-bar w-100 bg-lighter"></div>
+    <b-container class="todosapp-container">
+      <div class="todosapp-tools-container w-100 mb-2 p-0 text-center">
+        <b-button
+          variant="primary"
+          class="todosapp-createbutton shadow"
+          @click="onCreate"
+          ><b-icon-plus-square
+            aria-hidden="true"
+            :animation="completedTodos.length === 0 ? 'fade' : ''"
+            font-scale="1.2"
+          ></b-icon-plus-square>
+          New Todo
+        </b-button>
+      </div>
+      <transition-group
+        name="todosapp-cardlist"
+        tag="ul"
+        class="todosapp-cardlist flex-column position-relative pl-0"
+        key="1"
       >
-        <b-card-text>
-          {{ todo.content }}
-        </b-card-text>
-        <div class="todosapp-card__footer">
-          <b-badge
-            v-if="todo.priority"
-            :class="`badge-${todoPriorty[todo.priority].toLowerCase()}`"
-            >{{ todoPriorty[todo.priority] }}</b-badge
-          >
-          <b-badge
-            v-if="todo.category"
-            :class="`badge-${todoCategory[todo.category].toLowerCase()}`"
-            >{{ todoCategory[todo.category] }}</b-badge
-          >
-        </div>
-        <b-form-checkbox
-          v-model="todo.completed"
-          class="todosapp-card__checkbox"
-          size="lg"
-          @input="onCompleted(todo.id, todo.completed)"
-        ></b-form-checkbox>
-        <b-dropdown
-          size="sm"
-          variant="link"
-          toggle-class="text-decoration-none"
-          menu-class="todosapp-card__action__menu"
-          class="todosapp-card__action"
-          right
-          no-caret
+        <b-card
+          v-for="todo in completedTodos"
+          :key="todo.id"
+          :title="todo.title"
+          tag="li"
+          class="todosapp-card w-100 mb-4 px-4"
         >
-          <template #button-content>
-            <b-icon-three-dots variant="assistant"></b-icon-three-dots>
-            <span class="sr-only">More Action</span>
-          </template>
-          <b-dropdown-item @click="onEdit(todo.id)">Edit</b-dropdown-item>
-          <b-dropdown-divider></b-dropdown-divider>
-          <b-dropdown-item variant="danger" @click="onDelete(todo.id)"
-            >Delete</b-dropdown-item
+          <div class="todosapp-card__detail mb-1">
+            <b-badge v-if="todo.date" class="badge-date">{{
+              todo.date | dateFormatter
+            }}</b-badge>
+          </div>
+          <b-card-text>
+            {{ todo.content }}
+          </b-card-text>
+          <div class="todosapp-card__detail">
+            <b-badge
+              v-if="todo.priority"
+              :class="`badge-${todoPriorty[todo.priority].toLowerCase()}`"
+              >{{ todoPriorty[todo.priority] }}</b-badge
+            >
+            <b-badge
+              v-if="todo.category"
+              :class="`badge-${todoCategory[todo.category].toLowerCase()}`"
+              >{{ todoCategory[todo.category] }}</b-badge
+            >
+          </div>
+          <b-form-checkbox
+            v-model="todo.completed"
+            class="todosapp-card__checkbox"
+            size="lg"
+            @input="onCompleted(todo.id, todo.completed)"
+          ></b-form-checkbox>
+          <b-dropdown
+            size="sm"
+            variant="link"
+            toggle-class="text-decoration-none"
+            menu-class="todosapp-card__action__menu"
+            class="todosapp-card__action"
+            right
+            no-caret
           >
-        </b-dropdown>
-      </b-card>
-    </transition-group>
-    <b-button variant="primary" class="todosapp-createbutton" @click="onCreate"
-      ><b-icon-plus
-        scale="2.3"
-        aria-label="Add"
-        :animation="completedTodos.length === 0 ? 'fade' : ''"
-      ></b-icon-plus
-    ></b-button>
-    <b-modal
-      ref="todoModal"
-      scrollable
-      hide-footer
-      no-close-on-backdrop
-      centered
-      title="Todo"
-      button-size="sm"
-    >
-      <!-- Todo Form -->
-      <div v-if="!loading.currentTodo && currentTodo">
-        <b-form @submit="onSubmit" @reset="onReset">
-          <!-- title -->
-          <b-form-group
-            id="formGroupTodoTitle"
-            label-for="inputTodoTitle"
-            :state="
-              $v.currentTodo.title.$dirty && !$v.currentTodo.title.required
-            "
-          >
-            <template #label>
-              <label
-                id="formGroupTodoTitle__BV_label_"
-                for="inputTodoTitle"
-                class="d-block"
-              >
-                <span class="text-danger">*</span> Title:
-              </label>
+            <template #button-content>
+              <b-icon-three-dots variant="assistant"></b-icon-three-dots>
+              <span class="sr-only">More Action</span>
             </template>
-            <b-form-input
-              id="inputTodoTitle"
-              v-model="$v.currentTodo.title.$model"
-              type="text"
-              placeholder="Enter title"
-              :state="inputState_title"
-            ></b-form-input>
-            <b-form-invalid-feedback>
-              Title field is required.
-            </b-form-invalid-feedback>
-          </b-form-group>
-          <!-- content -->
-          <b-form-group
-            id="formGroupTodoContent"
-            label="Content:"
-            label-for="textareaTodoContent"
-            :state="
-              $v.currentTodo.content.$dirty && !$v.currentTodo.content.maxLength
-            "
-          >
-            <b-form-textarea
-              id="textareaTodoContent"
-              v-model="$v.currentTodo.content.$model"
-              type="text"
-              placeholder="Enter content"
-              rows="4"
-              debounce="300"
-              no-resize
-              no-auto-shrink
-              trim
-              :state="inputState_content"
-            ></b-form-textarea>
-            <b-form-invalid-feedback>
-              Content field must be at most
-              {{ $v.currentTodo.content.$params.maxLength.max }} letters.
-            </b-form-invalid-feedback>
-          </b-form-group>
-          <!-- date(switch) -->
-          <b-form-checkbox
-            v-model="todoFormSettings.date.switch"
-            name="dateSwitchButton"
-            switch
-            class="mb-2"
-          >
-            Date
-          </b-form-checkbox>
-          <!-- date -->
-          <b-form-group
-            id="formGroupTodoDate"
-            label="Date:"
-            label-for="datepickerTodoDate"
-            label-sr-only
-            v-if="todoFormSettings.date.switch"
-          >
-            <b-form-datepicker
-              id="datepickerTodoDate"
-              v-model="currentTodo.date"
-              placeholder="Choose a date"
-              locale="en"
-              :hide-header="true"
-              :date-format-options="{
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit'
-              }"
-              :min="todoFormSettings.date.minDate"
-            ></b-form-datepicker>
-          </b-form-group>
-          <!-- time(switch) -->
-          <b-form-checkbox
-            v-model="todoFormSettings.time.switch"
-            name="timeSwitchButton"
-            switch
-            class="mb-2"
-          >
-            Time
-          </b-form-checkbox>
-          <!-- time -->
-          <b-form-group
-            id="formGroupTodoTime"
-            label="Time:"
-            label-for="datepickerTodoTime"
-            label-sr-only
-            v-if="todoFormSettings.time.switch"
-          >
-            <b-form-timepicker
-              id="datepickerTodoTime"
-              v-model="currentTodo.time"
-              placeholder="Choose a time"
-              now-button
-              reset-button
-              :hide-header="true"
-              locale="en"
-            ></b-form-timepicker>
-          </b-form-group>
-          <!-- priority -->
-          <b-form-group
-            id="formGroupTodoPriority"
-            label="Priority:"
-            label-for="selectTodoPriority"
-          >
-            <b-form-select
-              id="selectTodoPriority"
-              v-model="currentTodo.priority"
-              :options="todoFormSettings.priority.options"
-            ></b-form-select>
-          </b-form-group>
-          <!-- category -->
-          <b-form-group
-            id="formGroupTodoCategory"
-            label="Category:"
-            label-for="selectTodoCategory"
-          >
-            <b-form-select
-              id="selectTodoCategory"
-              v-model="currentTodo.category"
-              :options="todoFormSettings.category.options"
-            ></b-form-select>
-          </b-form-group>
-          <b-button type="submit" variant="primary">Save</b-button>
-          <b-button type="reset" variant="warning">Reset</b-button>
-        </b-form>
-      </div>
-      <!-- loading -->
-      <div v-else>
-        <b-skeleton></b-skeleton>
-        <b-skeleton></b-skeleton>
-        <b-skeleton></b-skeleton>
-      </div>
-    </b-modal>
-  </b-container>
+            <b-dropdown-item @click="onEdit(todo.id)">Edit</b-dropdown-item>
+            <b-dropdown-divider></b-dropdown-divider>
+            <b-dropdown-item variant="danger" @click="onDelete(todo.id)"
+              >Delete</b-dropdown-item
+            >
+          </b-dropdown>
+        </b-card>
+      </transition-group>
+      <b-modal
+        ref="todoModal"
+        scrollable
+        hide-footer
+        no-close-on-backdrop
+        centered
+        title="Todo"
+        button-size="sm"
+        class="todosapp-modal"
+      >
+        <!-- Todo Form -->
+        <div v-if="!loading.currentTodo && currentTodo" ref="todoModalContent">
+          <b-form @submit="onSubmit" @reset="onReset">
+            <!-- title -->
+            <b-form-group
+              id="formGroupTodoTitle"
+              label-for="inputTodoTitle"
+              :state="
+                $v.currentTodo.title.$dirty && !$v.currentTodo.title.required
+              "
+            >
+              <template #label>
+                <span class="text-danger">*</span> Title
+              </template>
+              <b-form-input
+                id="inputTodoTitle"
+                v-model="$v.currentTodo.title.$model"
+                type="text"
+                placeholder="Enter title"
+                :state="inputState_title"
+              ></b-form-input>
+              <b-form-invalid-feedback>
+                Title field is required.
+              </b-form-invalid-feedback>
+            </b-form-group>
+            <!-- content -->
+            <b-form-group
+              id="formGroupTodoContent"
+              label="Content"
+              label-for="textareaTodoContent"
+              :state="
+                $v.currentTodo.content.$dirty &&
+                !$v.currentTodo.content.maxLength
+              "
+            >
+              <b-form-textarea
+                id="textareaTodoContent"
+                v-model="$v.currentTodo.content.$model"
+                type="text"
+                placeholder="Enter content"
+                rows="4"
+                debounce="300"
+                no-resize
+                no-auto-shrink
+                trim
+                :state="inputState_content"
+              ></b-form-textarea>
+              <b-form-invalid-feedback>
+                Content field must be at most
+                {{ $v.currentTodo.content.$params.maxLength.max }} letters.
+              </b-form-invalid-feedback>
+            </b-form-group>
+            <!-- date(switch) -->
+            <b-form-checkbox
+              v-model="todoFormSettings.date.switch"
+              name="dateSwitchButton"
+              switch
+              class="mb-2"
+            >
+              Date
+            </b-form-checkbox>
+            <!-- date -->
+            <b-row>
+              <b-form-group
+                id="formGroupTodoDate"
+                label="Date"
+                label-for="datepickerTodoDate"
+                label-sr-only
+                class="col-md-8"
+                v-if="todoFormSettings.date.switch"
+              >
+                <b-form-datepicker
+                  id="datepickerTodoDate"
+                  v-model="currentTodo.date"
+                  placeholder="Choose a date"
+                  locale="en"
+                  reset-button
+                  hide-header
+                  :date-format-options="{
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                  }"
+                  :min="todoFormSettings.date.minDate"
+                >
+                  <template #button-content>
+                    <b-icon-calendar-event
+                      scale="0.9"
+                      style="color: #696969"
+                    ></b-icon-calendar-event>
+                  </template>
+                </b-form-datepicker>
+              </b-form-group>
+            </b-row>
+            <!-- priority -->
+            <b-row>
+              <b-form-group
+                id="formGroupTodoPriority"
+                label="Priority"
+                label-for="selectTodoPriority"
+                class="col-md-8"
+              >
+                <b-form-select
+                  id="selectTodoPriority"
+                  v-model="currentTodo.priority"
+                  :options="todoFormSettings.priority.options"
+                ></b-form-select>
+              </b-form-group>
+            </b-row>
+            <!-- category -->
+            <b-row>
+              <b-form-group
+                id="formGroupTodoCategory"
+                label="Category"
+                label-for="selectTodoCategory"
+                class="col-md-8"
+              >
+                <b-form-select
+                  id="selectTodoCategory"
+                  v-model="currentTodo.category"
+                  :options="todoFormSettings.category.options"
+                ></b-form-select>
+              </b-form-group>
+            </b-row>
+            <div class="todosapp-modal__footer text-right">
+              <b-button
+                type="reset"
+                variant="warning"
+                size="sm"
+                style="margin-right: 8px"
+                >Reset</b-button
+              >
+              <b-button type="submit" variant="primary" size="sm"
+                >Save</b-button
+              >
+            </div>
+          </b-form>
+        </div>
+        <!-- loading -->
+        <div v-else>
+          <b-skeleton></b-skeleton>
+          <b-skeleton></b-skeleton>
+          <b-skeleton></b-skeleton>
+        </div>
+      </b-modal>
+    </b-container>
+  </div>
 </template>
 
 <script>
@@ -229,7 +239,11 @@ import { RESPONSE_TYPE } from '@/services/api-request';
 import store from '@/store';
 import { mapState, mapGetters } from 'vuex';
 // b-icons: Importing specific icons
-import { BIconPlus, BIconThreeDots } from 'bootstrap-vue';
+import {
+  BIconCalendarEvent,
+  BIconPlusSquare,
+  BIconThreeDots
+} from 'bootstrap-vue';
 // Vuelidate Library
 import { validationMixin } from 'vuelidate';
 import { required, maxLength } from 'vuelidate/lib/validators';
@@ -254,8 +268,14 @@ async function getTodos() {
 export default {
   name: 'TodosHome',
   components: {
-    BIconPlus,
+    BIconCalendarEvent,
+    BIconPlusSquare,
     BIconThreeDots
+  },
+  filters: {
+    dateFormatter(value) {
+      return value.replace(/-/g, '/');
+    }
   },
   mixins: [validationMixin],
   data() {
@@ -274,12 +294,9 @@ export default {
           switch: false,
           minDate: minDate
         },
-        time: {
-          switch: false
-        },
         category: {
           options: [
-            { value: '', text: '--' },
+            { value: '', text: 'None' },
             { value: 'life', text: 'Life' },
             { value: 'work', text: 'Work' },
             { value: 'plan', text: 'Plan' }
@@ -325,6 +342,11 @@ export default {
       if (!vm.currentTodo || !vm.$v.currentTodo.content.$dirty) return null;
       if (vm.$v.currentTodo.content.$invalid) return false;
       else return null;
+    },
+    // the invalid form need to be scrolled this element.
+    _$modalBody() {
+      let modalBodyContent = this.$refs['todoModalContent'];
+      return modalBodyContent ? modalBodyContent.parentNode : null;
     }
   },
   // hook
@@ -405,7 +427,6 @@ export default {
         priority: null,
         completed: false,
         date: '',
-        time: '',
         category: '',
         id: null
       };
@@ -420,7 +441,7 @@ export default {
       // console.log('onSubmit:', this.currentTodo, this.$v.currentTodo);
       event.preventDefault();
       // Validate form
-      if (this.$v.currentTodo.$invalid) return;
+      if (this.$v.currentTodo.$invalid) return this._$modalBody.scrollTo(0, 0);
       // create or update
       if (!this.currentTodo.id) this.createTodo(this.currentTodo);
       else this.updateTodo(this.currentTodo.id, this.currentTodo);
@@ -435,7 +456,6 @@ export default {
         priority: null,
         completed: false,
         date: '',
-        time: '',
         category: ''
       });
       this.resetTodoForm();
@@ -450,11 +470,19 @@ export default {
       if (this.currentTodo) {
         this.todoFormSettings.date.switch =
           this.currentTodo.date !== '' ? true : false;
-        this.todoFormSettings.time.switch =
-          this.currentTodo.time !== '' ? true : false;
       }
       this.$v.currentTodo.$reset();
     }
   }
 };
 </script>
+<style lang="scss" scoped>
+.top-bar {
+  height: 3rem;
+}
+@media screen and (min-width: 576px) {
+  .top-bar {
+    height: 4rem;
+  }
+}
+</style>

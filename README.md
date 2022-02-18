@@ -10,6 +10,7 @@ Database: localStorage(No longer use json-server)
 
 - [x] API Services
 - [x] Form Validation Handler
-- [ ] UI Optimization
+- [x] UI Optimization
+- [ ] More Features(show all, today, sort, filter)
 - [ ] Data Render Optimization
-- [ ] More Feature
+- [ ] Fix Bug: date switch & value

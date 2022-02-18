@@ -1,8 +1,9 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Todos Home</router-link> |
-      <router-link to="/ui-demo">UI Demo</router-link>
+  <div id="app" class="main-wrapper">
+    <div class="d-flex px-3 py-2 justify-content-between">
+      <router-link to="/" class="todosapp-logo text-primary"
+        ><strong>Todo</strong></router-link
+      >
     </div>
     <router-view />
   </div>

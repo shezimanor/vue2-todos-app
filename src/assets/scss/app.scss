@@ -65,7 +65,7 @@ $colors: map-merge(
 
 $default: #0284c7 !default;
 $primary: #0ea5e9 !default;
-$secondary: #f7fafc !default;
+$secondary: #5abbfc !default;
 $success: $green !default;
 $info: $teal !default;
 $warning: $orange !default;
@@ -88,6 +88,7 @@ $theme-colors: map-merge(
     'neutral': $white,
     'description': $gray-700,
     'assistant': $gray-800,
+    'lighter': $gray-200,
     'dark': $dark,
     'darker': $darker
   ),
@@ -99,17 +100,38 @@ $theme-colors: map-merge(
 @import 'bootstrap-vue/src/index.scss';
 
 // General style overrides and custom classes: BEM(Block Element Modifier)
+.main-wrapper {
+  padding-bottom: 1rem;
+}
+.todosapp-logo {
+  font-size: 1.25rem;
+  &:hover,
+  &:focus {
+    color: $primary;
+    text-decoration: none;
+  }
+}
+.todosapp-createbutton {
+  margin-top: -2rem;
+  svg {
+    margin-right: 4px;
+  }
+}
 .todosapp-container {
   max-width: 640px;
 }
+.todosapp-cardlist {
+  padding-top: 0.5rem;
+}
 .todosapp-card {
   .card-title {
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.2rem;
     font-size: 1.25rem;
     color: $gray-800;
   }
   .card-text {
     color: $gray-700;
+    white-space: pre-line;
     margin-bottom: 0.5rem;
   }
 }
@@ -129,9 +151,14 @@ $theme-colors: map-merge(
     min-width: 80px;
   }
 }
-.todosapp-card__footer {
+.todosapp-card__detail {
   .badge {
     margin-right: 8px;
+    &.badge-date {
+      color: $gray-400;
+      background-color: $gray-200;
+      letter-spacing: 1px;
+    }
     &.badge-low {
       color: $gray-800;
       background-color: $cyan;
@@ -158,12 +185,26 @@ $theme-colors: map-merge(
     }
   }
 }
-.todosapp-createbutton {
-  display: block;
-  width: 46px;
-  height: 46px;
-  margin: auto;
-  border-radius: 23px;
+// datepicker customize
+.b-calendar-grid {
+  .b-calendar-grid-body {
+    // disabled-date
+    .text-dark.disabled,
+    .text-muted.disabled {
+      color: $gray-400 !important;
+    }
+    .bg-light {
+      background-color: $white !important;
+    }
+  }
+  .b-calendar-grid-help {
+    &.text-muted {
+      color: $gray-400 !important;
+    }
+    &.bg-light {
+      background-color: $white !important;
+    }
+  }
 }
 
 // animation
