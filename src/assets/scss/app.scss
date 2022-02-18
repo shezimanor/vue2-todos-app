@@ -105,11 +105,6 @@ $theme-colors: map-merge(
 }
 .todosapp-logo {
   font-size: 1.25rem;
-  &:hover,
-  &:focus {
-    color: $primary;
-    text-decoration: none;
-  }
 }
 .todosapp-createbutton {
   margin-top: -2rem;
@@ -124,6 +119,8 @@ $theme-colors: map-merge(
   padding-top: 0.5rem;
 }
 .todosapp-card {
+  position: relative;
+  background-color: $white;
   .card-title {
     margin-bottom: 0.2rem;
     font-size: 1.25rem;
@@ -139,6 +136,7 @@ $theme-colors: map-merge(
   position: absolute;
   top: 1.1rem;
   left: 0.75rem;
+  z-index: 1;
 }
 .todosapp-card__action {
   position: absolute;
@@ -212,11 +210,14 @@ $theme-colors: map-merge(
   position: absolute;
   transition: all 0.2s ease;
 }
+.todosapp-cardlist-enter-active {
+  transition: all 0.2s ease 0.2s;
+}
 .todosapp-cardlist-enter,
 .todosapp-cardlist-leave-to {
   opacity: 0;
   transform: translateX(-1rem);
 }
 .todosapp-cardlist-move {
-  transition: all 0.5s ease 0.3s;
+  transition: all 0.4s ease;
 }

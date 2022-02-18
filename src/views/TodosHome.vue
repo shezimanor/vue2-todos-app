@@ -2,27 +2,40 @@
   <div>
     <div class="top-bar w-100 bg-lighter"></div>
     <b-container class="todosapp-container">
-      <div class="todosapp-tools-container w-100 mb-2 p-0 text-center">
+      <div class="w-100 mb-1 p-0 text-center">
         <b-button
           variant="primary"
           class="todosapp-createbutton shadow"
           @click="onCreate"
           ><b-icon-plus-square
             aria-hidden="true"
-            :animation="completedTodos.length === 0 ? 'fade' : ''"
+            :animation="uncompletedTodos.length === 0 ? 'fade' : ''"
             font-scale="1.2"
           ></b-icon-plus-square>
           New Todo
         </b-button>
       </div>
+      <div class="d-flex w-100 mb-2 px-0 py-1 justify-content-between">
+        <b-button variant="outline-assistant" size="sm">Priority</b-button>
+        <b-form-checkbox
+          v-model="todosSettings.showAll"
+          name="check-button"
+          button
+          button-variant="outline-description"
+          size="sm"
+        >
+          {{
+            todosSettings.showAll ? 'Only todo' : 'Show all'
+          }}</b-form-checkbox
+        >
+      </div>
       <transition-group
         name="todosapp-cardlist"
         tag="ul"
         class="todosapp-cardlist flex-column position-relative pl-0"
-        key="1"
       >
         <b-card
-          v-for="todo in completedTodos"
+          v-for="todo in currentTodos"
           :key="todo.id"
           :title="todo.title"
           tag="li"
@@ -48,12 +61,14 @@
               >{{ todoCategory[todo.category] }}</b-badge
             >
           </div>
-          <b-form-checkbox
-            v-model="todo.completed"
-            class="todosapp-card__checkbox"
-            size="lg"
-            @input="onCompleted(todo.id, todo.completed)"
-          ></b-form-checkbox>
+          <keep-alive>
+            <b-form-checkbox
+              v-model="todo.completed"
+              class="todosapp-card__checkbox"
+              size="lg"
+              @input="onCompleted(todo.id, todo.completed)"
+            ></b-form-checkbox>
+          </keep-alive>
           <b-dropdown
             size="sm"
             variant="link"
@@ -310,6 +325,9 @@ export default {
             { value: 3, text: 'High' }
           ]
         }
+      },
+      todosSettings: {
+        showAll: false
       }
     };
   },
@@ -329,7 +347,7 @@ export default {
       todoCategory: state => state.todo.todoCategory,
       todoPriorty: state => state.todo.todoPriorty
     }),
-    ...mapGetters('todo', ['completedTodos', 'getTodoById']),
+    ...mapGetters('todo', ['uncompletedTodos', 'getTodoById']),
     // inputState
     inputState_title() {
       const vm = this;
@@ -347,6 +365,9 @@ export default {
     _$modalBody() {
       let modalBodyContent = this.$refs['todoModalContent'];
       return modalBodyContent ? modalBodyContent.parentNode : null;
+    },
+    currentTodos() {
+      return this.todosSettings.showAll ? this.todos : this.uncompletedTodos;
     }
   },
   // hook
@@ -361,6 +382,12 @@ export default {
     next();
   },
   methods: {
+    beforeEnter(el) {
+      console.log(`el`, el);
+    },
+    afterEnter(el) {
+      console.log(`el`, el);
+    },
     async createTodo(createdTodo) {
       this.loading.currentTodo = true;
       const { responseType } = await store.dispatch(

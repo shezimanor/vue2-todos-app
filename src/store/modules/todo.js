@@ -70,7 +70,7 @@ export const actions = {
 };
 
 export const getters = {
-  completedTodos: state => {
+  uncompletedTodos: state => {
     return state.todos.filter(todo => !todo.completed);
   },
   getTodoById: state => id => {
