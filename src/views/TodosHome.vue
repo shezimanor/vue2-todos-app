@@ -16,10 +16,20 @@
         </b-button>
       </div>
       <div class="d-flex w-100 mb-2 px-0 py-1 justify-content-between">
-        <b-button variant="outline-assistant" size="sm">Priority</b-button>
         <b-form-checkbox
+          v-if="hasPriorityTodo && currentTodos.length > 1"
+          v-model="todosSettings.sortingPriority"
+          variant="outline-assistant"
+          name="sortingPriorityCheckButton"
+          button
+          button-variant="outline-description"
+          size="sm"
+          >Sort by Priority</b-form-checkbox
+        >
+        <b-form-checkbox
+          v-if="todos.length > 0 && todosLength > uncompletedTodosLength"
           v-model="todosSettings.showAll"
-          name="check-button"
+          name="showAllCheckButton"
           button
           button-variant="outline-description"
           size="sm"
@@ -35,7 +45,7 @@
         class="todosapp-cardlist flex-column position-relative pl-0"
       >
         <b-card
-          v-for="todo in currentTodos"
+          v-for="todo in showingTodos"
           :key="todo.id"
           :title="todo.title"
           tag="li"
@@ -319,7 +329,7 @@ export default {
         },
         priority: {
           options: [
-            { value: null, text: 'None' },
+            { value: 0, text: 'None' },
             { value: 1, text: 'Low' },
             { value: 2, text: 'Medium' },
             { value: 3, text: 'High' }
@@ -327,7 +337,8 @@ export default {
         }
       },
       todosSettings: {
-        showAll: false
+        showAll: false,
+        sortingPriority: false
       }
     };
   },
@@ -347,7 +358,12 @@ export default {
       todoCategory: state => state.todo.todoCategory,
       todoPriorty: state => state.todo.todoPriorty
     }),
-    ...mapGetters('todo', ['uncompletedTodos', 'getTodoById']),
+    ...mapGetters('todo', [
+      'uncompletedTodos',
+      'todosLength',
+      'uncompletedTodosLength',
+      'getTodoById'
+    ]),
     // inputState
     inputState_title() {
       const vm = this;
@@ -368,6 +384,27 @@ export default {
     },
     currentTodos() {
       return this.todosSettings.showAll ? this.todos : this.uncompletedTodos;
+    },
+    sortedPriorityTodos() {
+      let sortedPriorityTodos = this.currentTodos.slice();
+      return sortedPriorityTodos.sort((todo_a, todo_b) => {
+        if (todo_a.priority > todo_b.priority) {
+          return -1;
+        } else if (todo_a.priority < todo_b.priority) {
+          return 1;
+        }
+        return 0;
+      });
+    },
+    hasPriorityTodo() {
+      return this.currentTodos.findIndex(todo => todo.priority > 0) !== -1
+        ? true
+        : false;
+    },
+    showingTodos() {
+      return this.todosSettings.sortingPriority
+        ? this.sortedPriorityTodos
+        : this.currentTodos;
     }
   },
   // hook
@@ -451,7 +488,7 @@ export default {
       this.currentTodo = {
         title: '',
         content: '',
-        priority: null,
+        priority: 0,
         completed: false,
         date: '',
         category: '',
@@ -480,7 +517,7 @@ export default {
       this.currentTodo = Object.assign(this.currentTodo, {
         title: '',
         content: '',
-        priority: null,
+        priority: 0,
         completed: false,
         date: '',
         category: ''

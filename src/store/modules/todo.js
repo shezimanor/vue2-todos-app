@@ -73,6 +73,12 @@ export const getters = {
   uncompletedTodos: state => {
     return state.todos.filter(todo => !todo.completed);
   },
+  todosLength: state => {
+    return state.todos.length;
+  },
+  uncompletedTodosLength: (state, getters) => {
+    return getters.uncompletedTodos.length;
+  },
   getTodoById: state => id => {
     return state.todos.find(todo => todo.id === id);
   }
