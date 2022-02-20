@@ -407,6 +407,12 @@ export default {
         : this.currentTodos;
     }
   },
+  watch: {
+    'todoFormSettings.date.switch'(switchValue) {
+      // when date's switch is `off`, clear `currentTodo` date's value
+      if (!switchValue) this.currentTodo.date = '';
+    }
+  },
   // hook
   async beforeRouteEnter(routeTo, routeFrom, next) {
     // Called before component is created.
