@@ -106,17 +106,34 @@ $theme-colors: map-merge(
 .todosapp-logo {
   font-size: 1.25rem;
 }
+.todosapp-filterdropdwon__menu {
+  width: 132px;
+  min-width: 132px;
+  .todosapp-filterdropdwon__menuitem {
+    .dropdown-item {
+      font-weight: 700;
+      color: $gray-600;
+    }
+    .dropdown-item:disabled {
+      font-weight: 500;
+      color: $gray-300;
+    }
+  }
+}
+.todosapp-container {
+  max-width: 640px;
+}
 .todosapp-createbutton {
   margin-top: -2rem;
   svg {
     margin-right: 4px;
   }
 }
-.todosapp-container {
-  max-width: 640px;
-}
-.todosapp-cardlist {
-  padding-top: 0.5rem;
+.todosapp-header {
+  h2 {
+    color: $gray-600;
+    font-weight: 700;
+  }
 }
 .todosapp-card {
   position: relative;

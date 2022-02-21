@@ -9,11 +9,23 @@
           @click="onCreate"
           ><b-icon-plus-square
             aria-hidden="true"
-            :animation="uncompletedTodos.length === 0 ? 'fade' : ''"
+            :animation="
+              uncompletedCurrentConditionTodos.length === 0 ? 'fade' : ''
+            "
             font-scale="1.2"
           ></b-icon-plus-square>
           New Todo
         </b-button>
+      </div>
+      <div class="todosapp-header px-0 py-1" v-if="todosFilterCondition !== ''">
+        <b-button variant="link" class="p-0 pr-1" @click="filterTodos('')">
+          <b-icon-arrow-left-short
+            scale="1.25"
+            aria-hidden="true"
+          ></b-icon-arrow-left-short>
+          All
+        </b-button>
+        <h2>{{ todosFilterCondition | upperFirst }}</h2>
       </div>
       <div class="d-flex w-100 mb-2 px-0 py-1 justify-content-between">
         <b-form-checkbox
@@ -24,18 +36,23 @@
           button
           button-variant="outline-description"
           size="sm"
-          >Sort by Priority</b-form-checkbox
+          >{{
+            todosSettings.sortingPriority ? 'Unsort' : 'Sort by Priority'
+          }}</b-form-checkbox
         >
         <b-form-checkbox
-          v-if="todos.length > 0 && todosLength > uncompletedTodosLength"
-          v-model="todosSettings.showAll"
-          name="showAllCheckButton"
+          v-if="
+            currentConditionTodosLength > 0 &&
+            currentConditionTodosLength > uncompletedCurrentConditionTodosLength
+          "
+          v-model="todosSettings.showDone"
+          name="showDoneCheckButton"
           button
           button-variant="outline-description"
           size="sm"
         >
           {{
-            todosSettings.showAll ? 'Only todo' : 'Show all'
+            todosSettings.showDone ? 'Only todo' : 'Show done'
           }}</b-form-checkbox
         >
       </div>
@@ -261,10 +278,10 @@
 
 <script>
 import { RESPONSE_TYPE } from '@/services/api-request';
-import store from '@/store';
 import { mapState, mapGetters } from 'vuex';
 // b-icons: Importing specific icons
 import {
+  BIconArrowLeftShort,
   BIconCalendarEvent,
   BIconPlusSquare,
   BIconThreeDots
@@ -273,41 +290,37 @@ import {
 import { validationMixin } from 'vuelidate';
 import { required, maxLength } from 'vuelidate/lib/validators';
 // utils
-import { deepCopy } from '@/utils';
+import {
+  getTodos,
+  filterTodos,
+  deepCopy,
+  getToday,
+  getTodayFormat
+} from '@/utils';
 
-async function getTodos() {
-  console.log(`getTodos`);
-
-  const response = await store.dispatch('todo/getTodos', {
-    page: 1,
-    completed: false
-  });
-  console.log(`getTodos: `, response);
-
-  // handle error
-  if (response.responseType !== RESPONSE_TYPE.CONNECT_CORRECT) {
-    console.log(`getTodos error`);
-  }
-}
+const today = getToday();
+// 15th two months prior
+const minDate = new Date(today);
 
 export default {
   name: 'TodosHome',
   components: {
+    BIconArrowLeftShort,
     BIconCalendarEvent,
     BIconPlusSquare,
     BIconThreeDots
   },
   filters: {
+    upperFirst(value) {
+      let first = value.charAt(0);
+      return value.replace(first, first.toUpperCase());
+    },
     dateFormatter(value) {
       return value.replace(/-/g, '/');
     }
   },
   mixins: [validationMixin],
   data() {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    // 15th two months prior
-    const minDate = new Date(today);
     return {
       currentTodo: null,
       loading: {
@@ -337,7 +350,7 @@ export default {
         }
       },
       todosSettings: {
-        showAll: false,
+        showDone: false,
         sortingPriority: false
       }
     };
@@ -356,12 +369,14 @@ export default {
     ...mapState({
       todos: state => state.todo.todos,
       todoCategory: state => state.todo.todoCategory,
-      todoPriorty: state => state.todo.todoPriorty
+      todoPriorty: state => state.todo.todoPriorty,
+      todosFilterCondition: state => state.todo.todosFilterCondition
     }),
     ...mapGetters('todo', [
-      'uncompletedTodos',
-      'todosLength',
-      'uncompletedTodosLength',
+      'currentConditionTodos',
+      'uncompletedCurrentConditionTodos',
+      'currentConditionTodosLength',
+      'uncompletedCurrentConditionTodosLength',
       'getTodoById'
     ]),
     // inputState
@@ -383,9 +398,13 @@ export default {
       return modalBodyContent ? modalBodyContent.parentNode : null;
     },
     currentTodos() {
-      return this.todosSettings.showAll ? this.todos : this.uncompletedTodos;
+      console.log(`currentTodos`);
+      return this.todosSettings.showDone
+        ? this.currentConditionTodos
+        : this.uncompletedCurrentConditionTodos;
     },
     sortedPriorityTodos() {
+      console.log(`sortedPriorityTodos`);
       let sortedPriorityTodos = this.currentTodos.slice();
       return sortedPriorityTodos.sort((todo_a, todo_b) => {
         if (todo_a.priority > todo_b.priority) {
@@ -433,7 +452,7 @@ export default {
     },
     async createTodo(createdTodo) {
       this.loading.currentTodo = true;
-      const { responseType } = await store.dispatch(
+      const { responseType } = await this.$store.dispatch(
         'todo/createTodo',
         createdTodo
       );
@@ -449,7 +468,7 @@ export default {
     async updateTodo(id, updatedTodo) {
       this.loading.currentTodo = true;
       console.log('updateTodo:', id, updatedTodo);
-      const { responseType } = await store.dispatch('todo/updateTodo', {
+      const { responseType } = await this.$store.dispatch('todo/updateTodo', {
         id,
         todo: updatedTodo
       });
@@ -464,7 +483,10 @@ export default {
     },
     async deleteTodo(id) {
       console.log('deleteTodo:', id);
-      const { responseType } = await store.dispatch('todo/deleteTodo', id);
+      const { responseType } = await this.$store.dispatch(
+        'todo/deleteTodo',
+        id
+      );
       console.log('todo detele api done:', responseType);
       if (responseType === RESPONSE_TYPE.CONNECT_CORRECT) {
         console.log('deteled successfully!');
@@ -473,6 +495,7 @@ export default {
         console.log('fail to detele!');
       }
     },
+    filterTodos: filterTodos,
     onCompleted(id, completed) {
       console.log('onCompleted:', id, completed);
       this.updateTodo(id, { completed });
@@ -500,6 +523,17 @@ export default {
         category: '',
         id: null
       };
+      // consider current condition
+      switch (this.todosFilterCondition) {
+        case 'today':
+          this.currentTodo.date = getTodayFormat();
+          break;
+        case '':
+          break;
+        default:
+          this.currentTodo.category = this.todosFilterCondition;
+          break;
+      }
       this.resetTodoForm();
     },
     onDelete(id) {

@@ -11,6 +11,4 @@ Database: localStorage(No longer use json-server)
 - [x] API Services
 - [x] Form Validation Handler
 - [x] UI Optimization
-- [ ] More Features(~~show all~~, ~~sort~~, today, filter)
-- [x] Fix Bug: date switch & value
-- [ ] Data Render Optimization
+- [x] More Features(show all, sort, today, filter)

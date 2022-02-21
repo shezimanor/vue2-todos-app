@@ -1,5 +1,7 @@
 import { RESPONSE_TYPE } from '@/services/api-request';
 import TodoService from '@/services/localstorage-todo-service';
+// utils
+import { getTodayFormat } from '@/utils';
 
 export const namespaced = true;
 
@@ -16,7 +18,8 @@ export const state = {
     1: 'Low',
     2: 'Medium',
     3: 'High'
-  }
+  },
+  todosFilterCondition: ''
 };
 
 export const mutations = {
@@ -31,6 +34,9 @@ export const mutations = {
   },
   DELETE_TODO(state, index) {
     state.todos.splice(index, 1);
+  },
+  FILTER_TODOS(state, condition) {
+    state.todosFilterCondition = condition;
   }
 };
 
@@ -62,24 +68,67 @@ export const actions = {
   },
   async deleteTodo({ commit }, id) {
     const response = await TodoService.deleteTodo(id);
-    console.log(`deleteTodo actions`, response);
+    // console.log(`deleteTodo actions`, response);
     if (response.responseType === RESPONSE_TYPE.CONNECT_CORRECT)
       commit('DELETE_TODO', response.data.index);
     return response;
+  },
+  // filter todos
+  filterTodos({ commit }, condition) {
+    console.log(`filterTodos actions`, condition);
+    commit('FILTER_TODOS', condition);
   }
 };
 
 export const getters = {
-  uncompletedTodos: state => {
-    return state.todos.filter(todo => !todo.completed);
-  },
-  todosLength: state => {
-    return state.todos.length;
-  },
-  uncompletedTodosLength: (state, getters) => {
-    return getters.uncompletedTodos.length;
-  },
   getTodoById: state => id => {
     return state.todos.find(todo => todo.id === id);
+  },
+  // currentTodos by mutiple condition
+  currentConditionTodos: (state, getters) => {
+    switch (state.todosFilterCondition) {
+      case 'today':
+        return getters.todayTodos;
+      case '':
+        return state.todos;
+      default:
+        return getters.filteredTodosByCategory[state.todosFilterCondition];
+    }
+  },
+  // filtered todos `today`
+  todayTodos: state => {
+    let today = getTodayFormat();
+    return state.todos.filter(todo => todo.date === today);
+  },
+  // filtered todos `by cateogry`
+  filteredTodosByCategory: state => {
+    let filteredTodos = { empty: [] };
+    for (const key in state.todoCategory) {
+      if (Object.hasOwnProperty.call(state.todoCategory, key))
+        filteredTodos[key] = [];
+    }
+    state.todos.forEach(todo => {
+      switch (todo.category) {
+        case '':
+          filteredTodos.empty.push(todo);
+          break;
+        default:
+          filteredTodos[todo.category].push(todo);
+          break;
+      }
+    });
+    return filteredTodos;
+  },
+  uncompletedCurrentConditionTodos: (state, getters) => {
+    return getters.currentConditionTodos.filter(todo => !todo.completed);
+  },
+  currentConditionTodosLength: (state, getters) => {
+    return getters.currentConditionTodos.length;
+  },
+  uncompletedTodayTodosLength: (state, getters) => {
+    return getters.todayTodos.filter(todo => !todo.completed).length;
+  },
+  uncompletedCurrentConditionTodosLength: (state, getters) => {
+    return getters.uncompletedCurrentConditionTodos.length;
   }
 };
