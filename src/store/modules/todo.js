@@ -5,8 +5,6 @@ import { getTodayFormat } from '@/utils';
 
 export const namespaced = true;
 
-const perPage = 10;
-
 export const state = {
   todos: [],
   todoCategory: {
@@ -41,9 +39,8 @@ export const mutations = {
 };
 
 export const actions = {
-  async getTodos({ commit }, { page = 1, completed }) {
-    const skip = (page - 1) * perPage;
-    const response = await TodoService.getTodos({ perPage, skip, completed });
+  async getTodos({ commit }) {
+    const response = await TodoService.getTodos();
     // console.log(`getTodos actions`, response);
     if (response.responseType === RESPONSE_TYPE.CONNECT_CORRECT)
       commit('SET_TODOS', response.data.todos);
@@ -75,7 +72,7 @@ export const actions = {
   },
   // filter todos
   filterTodos({ commit }, condition) {
-    console.log(`filterTodos actions`, condition);
+    // console.log(`filterTodos actions`, condition);
     commit('FILTER_TODOS', condition);
   }
 };

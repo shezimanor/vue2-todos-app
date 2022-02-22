@@ -12,3 +12,4 @@ Data Storage: localStorage
 - [x] Form Validation Handler
 - [x] UI Optimization
 - [x] More Features(show all, sort, today, filter)
+- [x] Remove useless files or code

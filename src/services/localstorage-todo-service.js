@@ -15,8 +15,8 @@ const todoNotFoundResponse = {
 
 // All method below: imitate database manipulation
 export default {
-  getTodos(params) {
-    console.log('API_getTodos: ', params);
+  getTodos() {
+    // console.log('API_getTodos');
     return apiRequest(resolve => {
       // get localStorage todos
       let todos = JSON.parse(localStorage.getItem('todos')) || [];
@@ -29,7 +29,7 @@ export default {
     });
   },
   createTodo(todo) {
-    console.log('API_createTodo: ', todo);
+    // console.log('API_createTodo: ', todo);
     return apiRequest(resolve => {
       // create `id`
       let newTodo = {
@@ -49,7 +49,7 @@ export default {
     });
   },
   updateTodo(id, updatedContent) {
-    console.log('API_updateTodo: ', id, updatedContent);
+    // console.log('API_updateTodo: ', id, updatedContent);
     return apiRequest((resolve, reject) => {
       // find the todo
       let todos = JSON.parse(localStorage.getItem('todos')) || [];
@@ -77,7 +77,7 @@ export default {
     });
   },
   deleteTodo(id) {
-    console.log('API_deleteTodo: ', id);
+    // console.log('API_deleteTodo: ', id);
     return apiRequest((resolve, reject) => {
       // find the todo
       let todos = JSON.parse(localStorage.getItem('todos')) || [];

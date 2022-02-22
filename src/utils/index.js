@@ -20,11 +20,13 @@ export const getTodos = async () => {
     page: 1,
     completed: false
   });
-  console.log(`getTodos: `, response);
-
+  // console.log('todos read api done:', response);
   // handle error
-  if (response.responseType !== RESPONSE_TYPE.CONNECT_CORRECT) {
-    console.log(`getTodos error`);
+  if (response.responseType === RESPONSE_TYPE.CONNECT_CORRECT) {
+    // console.log('got todos successfully!');
+  } else {
+    // error
+    alert('fail to get todos');
   }
 };
 

@@ -52,7 +52,6 @@ export const apiRequest = requestManipulation =>
     requestManipulation(resolve, reject);
   })
     .then(response => {
-      console.log(`responseHandler`, response);
       return responseHandler(response);
     })
     .catch(error => {

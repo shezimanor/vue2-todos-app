@@ -29,7 +29,7 @@
       </div>
       <div class="d-flex w-100 mb-2 px-0 py-1 justify-content-between">
         <b-form-checkbox
-          v-if="hasPriorityTodo && currentTodos.length > 1"
+          v-if="hasPriorityTodo && unsortedTodos.length > 1"
           v-model="todosSettings.sortingPriority"
           variant="outline-assistant"
           name="sortingPriorityCheckButton"
@@ -62,7 +62,7 @@
         class="todosapp-cardlist flex-column position-relative pl-0"
       >
         <b-card
-          v-for="todo in showingTodos"
+          v-for="todo in currentTodos"
           :key="todo.id"
           :title="todo.title"
           tag="li"
@@ -366,12 +366,14 @@ export default {
     }
   },
   computed: {
+    // vuex state
     ...mapState({
       todos: state => state.todo.todos,
       todoCategory: state => state.todo.todoCategory,
       todoPriorty: state => state.todo.todoPriorty,
       todosFilterCondition: state => state.todo.todosFilterCondition
     }),
+    // vuex getters
     ...mapGetters('todo', [
       'currentConditionTodos',
       'uncompletedCurrentConditionTodos',
@@ -379,33 +381,27 @@ export default {
       'uncompletedCurrentConditionTodosLength',
       'getTodoById'
     ]),
-    // inputState
+    // inputState(null/false)
     inputState_title() {
       const vm = this;
       if (!vm.currentTodo || !vm.$v.currentTodo.title.$dirty) return null;
       if (vm.$v.currentTodo.title.$invalid) return false;
       else return null;
     },
+    // inputState(null/false)
     inputState_content() {
       const vm = this;
       if (!vm.currentTodo || !vm.$v.currentTodo.content.$dirty) return null;
       if (vm.$v.currentTodo.content.$invalid) return false;
       else return null;
     },
-    // the invalid form need to be scrolled this element.
-    _$modalBody() {
-      let modalBodyContent = this.$refs['todoModalContent'];
-      return modalBodyContent ? modalBodyContent.parentNode : null;
-    },
-    currentTodos() {
-      console.log(`currentTodos`);
+    unsortedTodos() {
       return this.todosSettings.showDone
         ? this.currentConditionTodos
         : this.uncompletedCurrentConditionTodos;
     },
     sortedPriorityTodos() {
-      console.log(`sortedPriorityTodos`);
-      let sortedPriorityTodos = this.currentTodos.slice();
+      let sortedPriorityTodos = this.unsortedTodos.slice();
       return sortedPriorityTodos.sort((todo_a, todo_b) => {
         if (todo_a.priority > todo_b.priority) {
           return -1;
@@ -416,14 +412,19 @@ export default {
       });
     },
     hasPriorityTodo() {
-      return this.currentTodos.findIndex(todo => todo.priority > 0) !== -1
+      return this.unsortedTodos.findIndex(todo => todo.priority > 0) !== -1
         ? true
         : false;
     },
-    showingTodos() {
+    currentTodos() {
       return this.todosSettings.sortingPriority
         ? this.sortedPriorityTodos
-        : this.currentTodos;
+        : this.unsortedTodos;
+    },
+    // the invalid form need to be scrolled this DOM element.
+    _$modalBody() {
+      let modalBodyContent = this.$refs['todoModalContent'];
+      return modalBodyContent ? modalBodyContent.parentNode : null;
     }
   },
   watch: {
@@ -444,60 +445,51 @@ export default {
     next();
   },
   methods: {
-    beforeEnter(el) {
-      console.log(`el`, el);
-    },
-    afterEnter(el) {
-      console.log(`el`, el);
-    },
     async createTodo(createdTodo) {
       this.loading.currentTodo = true;
       const { responseType } = await this.$store.dispatch(
         'todo/createTodo',
         createdTodo
       );
-      console.log('todo create api done:', responseType);
+      // console.log('todo create api done:', responseType);
       if (responseType === RESPONSE_TYPE.CONNECT_CORRECT) {
-        console.log('created successfully!');
+        // console.log('created successfully!');
       } else {
         // error
-        console.log('fail to create!');
+        // alert('fail to create!');
       }
       this.loading.currentTodo = false;
     },
     async updateTodo(id, updatedTodo) {
       this.loading.currentTodo = true;
-      console.log('updateTodo:', id, updatedTodo);
       const { responseType } = await this.$store.dispatch('todo/updateTodo', {
         id,
         todo: updatedTodo
       });
-      console.log('todo update api done:', responseType);
+      // console.log('todo update api done:', responseType);
       if (responseType === RESPONSE_TYPE.CONNECT_CORRECT) {
-        console.log('updated successfully!');
+        // console.log('updated successfully!');
       } else {
         // error
-        console.log('fail to update!');
+        // alert('fail to update!');
       }
       this.loading.currentTodo = false;
     },
     async deleteTodo(id) {
-      console.log('deleteTodo:', id);
       const { responseType } = await this.$store.dispatch(
         'todo/deleteTodo',
         id
       );
-      console.log('todo detele api done:', responseType);
+      // console.log('todo detele api done:', responseType);
       if (responseType === RESPONSE_TYPE.CONNECT_CORRECT) {
-        console.log('deteled successfully!');
+        // console.log('deteled successfully!');
       } else {
         // error
-        console.log('fail to detele!');
+        // alert('fail to detele!');
       }
     },
     filterTodos: filterTodos,
     onCompleted(id, completed) {
-      console.log('onCompleted:', id, completed);
       this.updateTodo(id, { completed });
     },
     async onEdit(id) {
@@ -537,13 +529,12 @@ export default {
       this.resetTodoForm();
     },
     onDelete(id) {
-      console.log('onDelete:', id);
       this.deleteTodo(id);
     },
     onSubmit(event) {
-      this.$v.currentTodo.$touch();
-      // console.log('onSubmit:', this.currentTodo, this.$v.currentTodo);
       event.preventDefault();
+      // to trigger Validation
+      this.$v.currentTodo.$touch();
       // Validate form
       if (this.$v.currentTodo.$invalid) return this._$modalBody.scrollTo(0, 0);
       // create or update
