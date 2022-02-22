@@ -23,11 +23,11 @@ Data Storage: Browser's localStorage
 
 ### 1. `src/`
 
-1. `components/AppHeader.vue` : 用來放置 LOGO 和篩選(Filters)下拉選單。
-2. `services/localstorage-todo-service.js` : 模擬 API。
-3. `store/modules/todo.js` : todos 資料操作與存取管理。
-4. `utils/index.js` : 共用工具型函數。
-5. `views/TodosHome.vue` : Todos App 主頁面。
+1. [components/AppHeader.vue](src/components/AppHeader.vue) : 用來放置 LOGO 和篩選(Filters)下拉選單。
+2. [services/localstorage-todo-service.js](src/services/localstorage-todo-service.js) : 模擬 API。
+3. [store/modules/todo.js](src/store/modules/todo.js) : todos 資料操作與存取管理。
+4. [utils/index.js](src/utils/index.js) : 共用工具型函數。
+5. [views/TodosHome.vue](src/views/TodosHome.vue) : Todos App 主頁面。
 
 ### 2. `Libraries`
 
