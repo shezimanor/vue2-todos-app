@@ -4,7 +4,7 @@
 
 > 使用 Vue2 撰寫的簡易待辦事項清單專案
 
-[Live Demo](https://github.com/shezimanor/vue2-todos-app)
+[Live Demo](https://shezimanor.github.io/vue2-todos-app/#/)
 
 Framework: [Vue@2.6.14](https://v2.vuejs.org/) & [BootstrapVue@2.21.2](https://bootstrap-vue.org/) (with Vue Cli)
 
