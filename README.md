@@ -4,11 +4,13 @@
 
 > 使用 Vue2 撰寫的簡易待辦事項清單專案
 
-[Live Demo](https://shezimanor.github.io/vue2-todos-app/#/)
-
 Framework: [Vue@2.6.14](https://v2.vuejs.org/) & [BootstrapVue@2.21.2](https://bootstrap-vue.org/) (with Vue Cli)
 
 Data Storage: Browser's localStorage
+
+[Live Demo](https://shezimanor.github.io/vue2-todos-app/#/)
+
+![Vue2 Todos App](/preview/demo.gif)
 
 ## 功能列表
 
