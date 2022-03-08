@@ -41,5 +41,8 @@ export const getToday = () => {
 };
 export const getTodayFormat = () => {
   const now = new Date();
-  return `${now.getFullYear()}-${months[now.getMonth()]}-${now.getDate()}`;
+  const nowDate = now.getDate();
+  return `${now.getFullYear()}-${months[now.getMonth()]}-${
+    ((nowDate / 10) | 0) >= 1 ? nowDate : `0${nowDate}`
+  }`;
 };
